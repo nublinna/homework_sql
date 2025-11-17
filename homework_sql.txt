@@ -1,0 +1,55 @@
+create table cars (
+	id serial primary key,
+	model varchar(500),
+	color varchar(15),
+	engine_capacity numeric(2, 1),
+	trunk_volume numeric(4, 1),
+	price numeric(10, 2)
+);
+
+insert into cars (model, color, engine_capacity,
+trunk_volume, price) values ('Volkswagen Polo', 'black',
+1.4, 351, 51544);
+
+alter table cars
+alter column engine_capacity type numeric(2, 1),
+alter column trunk_volume type numeric(5, 1);
+
+insert into cars (model, color, engine_capacity,trunk_volume, price) 
+			values ('Volkswagen Polo 2022', 'black', 1.4, 351, 51544),
+					('Hyundai Solaris 2025', 'white', 1.6, 480, 26696),
+					('Lada Vesta 2025', 'brown', 1.86, 480, 49500),
+					('Kia Sorento 2022', 'white', 2.5, 604, 75722);
+
+select model, price from cars;
+
+update cars set model = 'Volkswagen Polo 2020' 
+where model = 'Volkswagen Polo';
+
+create function get_average_price()
+returns numeric
+as $$
+declare 
+	avg_price numeric;
+begin
+	select avg(price) into avg_price from cars;
+	return avg_price;
+end;
+$$ language plpgsql;
+
+select get_average_price();
+
+create procedure raise_car_price(car_id integer, koef_rising numeric)
+language plpgsql
+as $$
+declare
+	old_price numeric;
+begin
+	select price into old_price from cars where id = car_id;
+	update cars set price = old_price * (1 + koef_rising) where id = car_id;
+end;
+$$;
+
+call raise_car_price(3, 0.2);
+
+select id, model, price from cars where id = 3;
