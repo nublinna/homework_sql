@@ -1,0 +1,86 @@
+insert into cars (model, color, engine_capacity,trunk_volume, price) 
+			values ('Volkswagen Golf VII', 'black', 1.0, 365, 37024),
+					('Hyundai Creta I 2020', 'gray', 1.6, 433, 50580),
+					('BMW X3 30e 2025', 'light-gray', 2.0, 460, 230306),
+					('Mercedes-Benz S-class 2019', 'black', 2.9, 510, 177833);
+
+create table if not exists manufacture (
+	id serial primary key,
+	manufacture_name varchar(70),
+	country varchar(70)
+);
+
+insert into manufacture (manufacture_name, country)
+		values ('BMW', 'Germany'),
+				('Mercedes-Benz', 'German'),
+				('Volkswagen', 'German'),
+				('Kia', 'South Korea'),
+				('Hyundai', 'South Korea'),
+				('Lada', 'Russia');
+				
+alter table cars add column manufacture_id integer;
+
+update cars set manufacture_id = 1 where model like 'BMW%';
+update cars set manufacture_id = 2 where model like 'Mercedes-Benz%';
+update cars set manufacture_id = 3 where model like 'Volkswagen%';
+update cars set manufacture_id = 4 where model like 'Kia%';
+update cars set manufacture_id = 5 where model like 'Hyundai%';
+update cars set manufacture_id = 6 where model like 'Lada%';
+
+alter table cars add constraint cars_manufacture
+foreign key (manufacture_id) references manufacture(id);
+
+UPDATE manufacture SET country = 'Germany' 
+WHERE manufacture_name IN ('Mercedes-Benz', 'Volkswagen');
+
+create table if not exists owner (
+	id serial primary key,
+	name varchar(200),
+	owned_cars int references cars(id)
+);
+
+insert into owner (name, owned_cars)
+	values ('John Smith', 4),
+			('Brad Pitt', 8),
+			('Bill Johns', 3);
+			
+create table if not exists clients (
+	id serial primary key,
+	client_name varchar(60)
+);
+
+create table if not exists orders (
+	id serial primary key,
+	order_date date,
+	order_type varchar(50),
+	client_id int references clients(id),
+	car_id int references cars(id)
+);
+
+insert into clients (client_name)
+	values ('Ivan Ivanov'),
+			('Peter Smith'),
+			('Bill Petrov');
+
+insert into clients (client_name)
+	values ('Sergei Semenov'),
+			('Anton Alekseev');
+
+
+insert into orders (order_date, order_type, client_id, car_id)
+	values ('2025-11-01', 'Test-drive', 1, 4),
+			('2025-11-10', 'Buy', 1, 4),
+			('2025-11-23', 'Rent', 2, 9),
+			('2025-11-27', 'Test-drive', 3, 9);
+
+select orders.order_type, clients.client_name, cars.model from orders
+inner join cars on cars.id = orders.car_id
+inner join clients on clients.id = orders.client_id
+
+select owner.name, owner.owned_cars, cars.model
+from owner
+right join cars on cars.id = owner.owned_cars
+
+select clients.client_name, orders.order_type
+from clients 
+left join orders on clients.id = orders.client_id 
